@@ -51,14 +51,33 @@ int main(int argc, char *argv[])
     if(inet_pton(AF_INET, argv[1], &serveraddr.sin_addr) <= 0)
         err_n_die("inet_pton error for %s ", argv[1]);
     
+    //make the connection to the server
     if (connect(sockfd, (SA *) &serveraddr, sizeof(serveraddr)) < 0)
     {
         err_n_die("connect failed");
     }
 
-    printf("Connected!");
-    
-    return 0;
+    //Creating a HTTP GET request
+    sprintf(sendline, "GET / HTTP/1.1\r\n\r\n");
+    sendbytes = strlen(sendline);
+
+    //Send the request
+    //write the request to the socket
+    if(write(sockfd, sendline, sendbytes) != sendbytes)
+    {
+        err_n_die("write error");
+    }
+
+    //Get the server response
+    //Set the buffer to all zeros
+    memset(recvline, 0, MAXLINE);
+    while ( (n = read(sockfd, recvline, MAXLINE - 1 )) > 0)
+    {
+        printf("%s", recvline);
+    }
+    if(n < 0)
+        err_n_die("read error");
+    exit(0);
 }
 
 void err_n_die(const char* fmt, ...)
